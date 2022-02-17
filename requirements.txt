@@ -1,0 +1,3 @@
+pypubsub
+requests
+git+https://github.com/accessibleapps/platform_utils
