@@ -1,8 +1,14 @@
 import glob
 import os.path
 import platform
+from typing import List, Tuple
 
-def find_datafiles():
+def find_datafiles() -> List[Tuple[str, List[str]]]:
+    """ Returns path to the updater bootstrap file.
+
+    :returns: A tuple of the form ("", ["bootstrap_file"])
+    :rtype: tuple
+    """
     system = platform.system()
     if system == 'Windows':
         file_ext = '*.exe'
