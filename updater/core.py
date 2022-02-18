@@ -3,12 +3,10 @@
 This is the updater core class which provides all facilities other implementation should rely in.
 This class should not be used directly, use a derived class instead.
 """
-import sys
 import contextlib
 import io
 import os
 import platform
-import tempfile
 import zipfile
 import logging
 import requests
@@ -18,13 +16,13 @@ from typing import Optional, Dict, Tuple, Union, Any
 
 log = logging.getLogger("updater.core")
 
-class updaterCore(object):
+class UpdaterCore(object):
     """ Base class for all updater implementations.
 
     Implementations must add user interaction methods and call logic for all methods present in this class.
     """
 
-    def __init__(self, endpoint: str, current_version: str, app_name: str = "", password: Optional[str] = None) -> None:
+    def __init__(self, endpoint: str, current_version: str, app_name: str = "", password: Optional[bytes] = None) -> None:
         """ 
         :param endpoint: The URl endpoint where the module should retrieve update information. It must return a json valid response or a non 200 HTTP status code.
         :type endpoint: str
@@ -76,7 +74,7 @@ class updaterCore(object):
         if available_version == self.current_version:
             return (False, False, False)
         if content["downloads"].get(update_url_key) == None:
-            log.error("Update file doesn't include architecture %s".format(update_url_key))
+            log.error("Update file doesn't include architecture {}".format(update_url_key))
             raise KeyError("Update file doesn't include current architecture.")
         available_description = content["description"]
         update_url = content ['downloads'][update_url_key]
@@ -112,7 +110,7 @@ class updaterCore(object):
             for chunk in download.iter_content(chunk_size):
                 outfile.write(chunk)
                 total_downloaded += len(chunk)
-                pub.sendMessage("updater.update-progress", total_downloaded, total_size)
+                pub.sendMessage("updater.update-progress", total_downloaded=total_downloaded, total_size=total_size)
         log.debug("Update downloaded")
         return update_destination
 
