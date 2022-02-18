@@ -1,0 +1,5 @@
+**__pycache__
+*.html
+*.css
+_build*
+_static*
