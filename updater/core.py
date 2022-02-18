@@ -8,10 +8,10 @@ import contextlib
 import io
 import os
 import platform
-import requests
 import tempfile
 import zipfile
 import logging
+import requests
 from pubsub import pub # type: ignore
 from platform_utils import paths # type: ignore
 from typing import Optional, Dict, Tuple, Union, Any
@@ -43,20 +43,20 @@ class updaterCore(object):
 
     def create_session(self) -> None:
         """ Creates a requests session for calling update server. The session will add an user agent based in parameters passed to :py:class:`updater.core.updaterCore`'s constructor. """
-        user_agent: str = "%s/%r" % (self.app_name, self.current_version)
+        user_agent: str = "%s/%s" % (self.app_name, self.current_version)
         self.session: requests.Session = requests.Session()
         self.session.headers['User-Agent'] = self.session.headers['User-Agent'] + user_agent
 
     def get_update_information(self) -> Dict[str, Any]:
         """ Calls the provided URL endpoint and returns information about the available update sent by the server. The format should adhere to the json specifications for updates.
 
-        If the server returns a status code different to 200 or the json file is not valid, this will raise either a :external:py:exc:`requests.RequestException` or a :external:py:exc:`json.JSONDecodeError`.
+        If the server returns a status code different to 200 or the json file is not valid, this will raise either a :external:py:exc:`requests.HTTPError`, :external:py:exc:`requests.RequestException` or a :external:py:exc:`json.JSONDecodeError`.
 
         :rtype: dict
         """
         response: requests.Response = self.session.get(self.endpoint)
         response.raise_for_status()
-        content = response.json()
+        content: Dict[str, Any] = response.json()
         return content
 
     def get_version_data(self, content: Dict[str, Any]) -> Tuple[Union[bool, str], Union[bool, str], Union[bool, str]]:
@@ -64,16 +64,22 @@ class updaterCore(object):
 
         the module checks whether :py:attr:`updater.core.updaterCore.current_version` is different to the version reported in the update file, and the json specification file contains a binary link for the user's architecture. If both of these conditions are True, a tuple is returned with (new_version, update_description, update_url).
 
-        If there is no update available, or binaries for the user architecture, then a tuple with Falsy values is returned.
+        If there is no update available,  a tuple with Falsy values is returned.
+
+        This method can raise a KeyError if there are no updates for the current architecture defined in the update file.
 
         :returns: tuple with update information or False values.
         :rtype: tuple
         """
         available_version = content["current_version"]
+        update_url_key = platform.system()+platform.architecture()[0][:2]
         if available_version == self.current_version:
             return (False, False, False)
+        if content["downloads"].get(update_url_key) == None:
+            log.error("Update file doesn't include architecture %s".format(update_url_key))
+            raise KeyError("Update file doesn't include current architecture.")
         available_description = content["description"]
-        update_url = content ['downloads'][platform.system()+platform.architecture()[0][:2]]
+        update_url = content ['downloads'][update_url_key]
         return (available_version, available_description, update_url)
 
     def download_update(self, update_url: str, update_destination: str, chunk_size: int = io.DEFAULT_BUFFER_SIZE) -> str:
