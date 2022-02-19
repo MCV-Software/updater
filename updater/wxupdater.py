@@ -33,7 +33,7 @@ import wx # type: ignore
 import logging
 from typing import Optional, Any, cast
 from pubsub import pub # type: ignore
-from pubsub.core.topicexc import TopicNameError
+from pubsub.core.topicexc import TopicNameError # type: ignore
 from platform_utils import paths # type: ignore
 from . import core, utils
 
