@@ -9,7 +9,7 @@ def convert_bytes(n: float) -> str:
     """
     K, M, G, T, P = 1 << 10, 1 << 20, 1 << 30, 1 << 40, 1 << 50
     if   n >= P:
-        return "%.2fPb" % (float(n) / T)
+        return "%.2fPb" % (float(n) / P)
     elif   n >= T:
         return "%.2fTb" % (float(n) / T)
     elif n >= G:
