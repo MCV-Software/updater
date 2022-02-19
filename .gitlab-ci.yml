@@ -26,11 +26,9 @@ test:pytest:
   script:
     - 'pip install --upgrade pytest coverage'
     - 'pip install --upgrade -r requirements.txt'
-    - 'cd src'
-    - 'coverage run --source . --omit model/application.py --omit model=logger.py -m pytest --junitxml=../report.xml'
+    - 'coverage run --source . -m pytest --junitxml=report.xml'
     - 'coverage report'
     - 'coverage xml'
-    - 'mv coverage.xml ..'
   only:
     - branches@manuelcortez/updater
     - release
