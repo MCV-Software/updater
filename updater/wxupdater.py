@@ -33,6 +33,7 @@ import wx # type: ignore
 import logging
 from typing import Optional, Any, cast
 from pubsub import pub # type: ignore
+from pubsub.core.topicexc import TopicNameError
 from platform_utils import paths # type: ignore
 from . import core, utils
 
@@ -166,4 +167,7 @@ class WXUpdater(core.UpdaterCore):
 
     def __del__(self) -> None:
         """ Unsubscribe events before deleting this object. """
-        pub.unsubscribe(self.on_update_progress, "updater.update-progress")
+        try:
+            pub.unsubscribe(self.on_update_progress, "updater.update-progress")
+        except TopicNameError:
+            pass
