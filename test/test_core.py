@@ -19,7 +19,7 @@ sys.modules["win32api"] = win32api
 
 def test_requests_session():
     global app_name, current_version, endpoint
-    updater = core.updaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
+    updater = core.UpdaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
     updater.create_session()
     assert hasattr(updater, "session")
     assert app_name in updater.session.headers.get("User-Agent")
@@ -27,7 +27,7 @@ def test_requests_session():
 
 def test_get_update_information_valid_json(file_data, json_data):
     global app_name, current_version, endpoint
-    updater = core.updaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
+    updater = core.UpdaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
     updater.create_session()
     with requests_mock.Mocker(session=updater.session) as mocked:
         mocked.get(endpoint, json=json_data)
@@ -36,7 +36,7 @@ def test_get_update_information_valid_json(file_data, json_data):
 
 def test_get_update_information_invalid_json(file_data, json_data):
     global app_name, current_version, endpoint
-    updater = core.updaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
+    updater = core.UpdaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
     updater.create_session()
     with requests_mock.Mocker(session=updater.session) as mocked:
         mocked.get(endpoint, text="thisisnotjson")
@@ -45,7 +45,7 @@ def test_get_update_information_invalid_json(file_data, json_data):
 
 def test_get_update_information_not_found():
     global app_name, current_version, endpoint
-    updater = core.updaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
+    updater = core.UpdaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
     updater.create_session()
     with requests_mock.Mocker(session=updater.session) as mocked:
         mocked.get(endpoint, status_code=404)
@@ -54,7 +54,7 @@ def test_get_update_information_not_found():
 
 def test_version_data_no_update(json_data):
     global app_name, endpoint
-    updater = core.updaterCore(endpoint=endpoint, app_name=app_name, current_version=json_data.get("current_version"))
+    updater = core.UpdaterCore(endpoint=endpoint, app_name=app_name, current_version=json_data.get("current_version"))
     updater.create_session()
     results = updater.get_version_data(json_data)
     assert results == (False, False, False)
@@ -65,7 +65,7 @@ def test_version_data_no_update(json_data):
 ])
 def test_version_data_update_available(json_data, platform, architecture):
     global app_name, current_version, endpoint
-    updater = core.updaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
+    updater = core.UpdaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
     updater.create_session()
     with mock.patch("platform.system", return_value=platform):
         with mock.patch("platform.architecture", return_value=architecture):
@@ -75,7 +75,7 @@ def test_version_data_update_available(json_data, platform, architecture):
 
 def test_version_data_architecture_not_found(json_data):
     global app_name, current_version, endpoint
-    updater = core.updaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
+    updater = core.UpdaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
     updater.create_session()
     with mock.patch("platform.system", return_value="nonos"):
         with mock.patch("platform.architecture", return_value=("31bits", "")):
@@ -84,7 +84,7 @@ def test_version_data_architecture_not_found(json_data):
 
 def test_download_update():
     global app_name, current_version, endpoint
-    updater = core.updaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
+    updater = core.UpdaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
     updater.create_session()
     with mock.patch("pubsub.pub.sendMessage") as sendMessage_mock:
         with mock.patch("io.open") as open_mock:
@@ -99,7 +99,7 @@ def test_download_update():
 def test_extract_archive():
     # This only tests if archive extraction methods were called successfully and with the right parameters.
     global app_name, current_version, endpoint
-    updater = core.updaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
+    updater = core.UpdaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
     zipfile_opened = mock.MagicMock()
     with mock.patch("zipfile.ZipFile", return_value=zipfile_opened) as zipfile_mock:
         result = updater.extract_update("update.zip", os.path.dirname(__file__))
@@ -120,7 +120,7 @@ def test_extract_archive():
 @pytest.mark.parametrize("system", [("Windows"), ("Darwin"), ("Linux")])
 def test_move_bootstrap(system):
     global app_name, current_version, endpoint
-    updater = core.updaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
+    updater = core.UpdaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
     # provide a fake extraction path.
     extracted_path = os.path.dirname(__file__)
     # supposedly, the bootstrap file should be moved to the parent path.
@@ -135,7 +135,7 @@ def test_move_bootstrap(system):
 @pytest.mark.parametrize("system", [("Windows"), ("Darwin"), ("Linux")])
 def test_execute_bootstrap(system):
     global app_name, current_version, endpoint
-    updater = core.updaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
+    updater = core.UpdaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
     with mock.patch("platform.system", return_value=system):
         with mock.patch("os.stat") as os_stat:
             with mock.patch("subprocess.Popen") as subprocess_popen:
@@ -158,7 +158,7 @@ def test_execute_bootstrap(system):
     ])
 def test_bootstrap_name(system, bootstrap_file):
     global app_name, current_version, endpoint
-    updater = core.updaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
+    updater = core.UpdaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
     with mock.patch("platform.system", return_value=system):
         result = updater.bootstrap_name()
         assert result == bootstrap_file
