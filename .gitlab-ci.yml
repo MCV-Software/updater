@@ -1,0 +1,43 @@
+stages:
+  - test
+
+test:mipy:
+  stage: test
+  tags:
+    - linux
+  image: python:3.7
+  interruptible: true
+  script:
+    - 'pip install --upgrade mypy pytest'
+    - 'pip install --upgrade -r requirements.txt'
+    - 'mypy updater'
+  only:
+    - branches@manuelcortez/updater
+    - release
+    - tags
+    - schedules
+
+test:pytest:
+  stage: test
+  tags:
+    - linux
+  image: python:3.8
+  interruptible: true
+  script:
+    - 'pip install --upgrade pytest coverage'
+    - 'pip install --upgrade -r requirements.txt'
+    - 'cd src'
+    - 'coverage run --source . --omit model/application.py --omit model=logger.py -m pytest --junitxml=../report.xml'
+    - 'coverage report'
+    - 'coverage xml'
+    - 'mv coverage.xml ..'
+  only:
+    - branches@manuelcortez/updater
+    - release
+    - tags
+    - schedules
+  artifacts:
+    when: always
+    reports:
+      junit: report.xml
+      cobertura: coverage.xml
