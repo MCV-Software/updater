@@ -90,12 +90,21 @@ class WXUpdater(core.UpdaterCore):
         self.progress_dialog: Any = None
 
     def initialize(self) -> None:
+        """ Inits pubsub events for the updater, subscribing to the 'updater.update-progress' message. """
         pub.subscribe(self.on_update_progress, "updater.update-progress")
 
     def create_progress_dialog(self) -> None:
+        """ Creates the update progress dialog that will be shown to users during download. """
         self.progress_dialog = wx.ProgressDialog(self.update_progress_msg.format(total_downloaded="0", total_size="0"), self.update_progress_title,  parent=None, maximum=100)
 
     def on_new_update_available(self) -> bool:
+        """ Displays a dialog informing about a new update available, and asking whether user wants to download it.
+
+        This function is called when :py:func:`wxupdater.WXUpdater.check_for_updates` triggers a new update.
+
+        :returns: True if user wants to download the update, False otherwise.
+        :rtype: bool
+        """
         dialog = wx.MessageDialog(None, self.new_update_msg, self.new_update_title, style=wx.YES|wx.NO|wx.ICON_WARNING)
         response = dialog.ShowModal()
         dialog.Destroy()
@@ -105,6 +114,10 @@ class WXUpdater(core.UpdaterCore):
             return False
 
     def on_update_progress(self, total_downloaded: int, total_size: int) -> None:
+        """ callback function used to update the wx progress dialog.
+
+        This function receives pubsub events sent by :py:func:`updater.core.UpdaterCore.download_update`.
+        """
         if self.progress_dialog == None:
             self.create_progress_dialog()
             self.progress_dialog.Show()
@@ -115,10 +128,22 @@ class WXUpdater(core.UpdaterCore):
             self.progress_dialog.SetTitle(self.update_progress_msg.format(total_downloaded=utils.convert_bytes(total_downloaded), total_size=utils.convert_bytes(total_size)))
 
     def on_update_almost_complete(self) -> None:
+        """ Displays a dialog informing the user about the app going to be restarted soon.
+
+        This function is executed when the update is about to be installed. Once user accepts the dialog, the bootstrap file will be run and the app will restart.
+        """
         ms = wx.MessageDialog(None, self.update_almost_complete_msg, self.update_almost_complete_title)
         return ms.ShowModal()
 
     def check_for_updates(self) -> None:
+        """ Check for updates.
+
+        This is the only function that should be executed from this class from outside of the updater package.
+
+        It checks for updates based in the parameters passed during instantiation.
+
+        If there are updates available, displays a dialog to confirm the download of update. If the update downloads successfully, it also extracts and installs it.
+        """
         self.create_session()
         self.initialize()
         update_info = self.get_update_information()
@@ -140,4 +165,5 @@ class WXUpdater(core.UpdaterCore):
         self.execute_bootstrap(bootstrap_exe, source_path)
 
     def __del__(self) -> None:
+        """ Unsubscribe events before deleting this object. """
         pub.unsubscribe(self.on_update_progress, "updater.update-progress")
