@@ -29,7 +29,11 @@ Also, you can customize messages in the update dialogs via the parameters :py:da
 
 import os
 import tempfile
-import wx # type: ignore
+try:
+    import wx # type: ignore
+    wx_present = True
+except ImportError:
+    wx_present = False
 import logging
 from typing import Optional, Any, cast
 from pubsub import pub # type: ignore
@@ -74,8 +78,11 @@ class WXUpdater(core.UpdaterCore):
         :type update_almost_complete_title: str
         :param update_almost_complete_msg: Message to explain to users about the application restart, after updates are applied.
         :type update_almost_complete_msg: str
+        :raises: :py:exc:`ModuleNotFoundError` if wx is not present.
         """
         super(WXUpdater, self).__init__(*args, **kwargs)
+        if wx_present == False:
+            raise ModuleNotFoundError("wxpython is not installed.")
         if new_update_title:
             self.new_update_title = new_update_title
         if new_update_msg:
