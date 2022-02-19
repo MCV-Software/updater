@@ -24,7 +24,7 @@ test:pytest:
   image: python:3.8
   interruptible: true
   script:
-    - 'pip install --upgrade pytest coverage'
+    - 'pip install --upgrade pytest coverage requests_mock'
     - 'pip install --upgrade -r requirements.txt'
     - 'coverage run --source . -m pytest --junitxml=report.xml'
     - 'coverage report'
