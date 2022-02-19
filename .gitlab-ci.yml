@@ -47,7 +47,7 @@ pages:
     - docker
   interruptible: true
   only:
-    - master
+    - main
   stage: doc
   script:
     - 'pip install --upgrade sphinx'
