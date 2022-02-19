@@ -51,7 +51,7 @@ pages:
   stage: doc
   script:
     - 'pip install --upgrade sphinx'
-    - -pip install --upgrade -r requirements.txt-
+    - 'pip install --upgrade -r requirements.txt'
     - 'make html'
     - 'mv -f _build/html public'
   artifacts:
