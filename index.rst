@@ -14,7 +14,8 @@ Note: This module is under active development. Currently we are in the process o
    :maxdepth: 2
    :caption: Contents:
 
-   source/generating_updates.rst
+   source/overview
+   source/tutorial
    source/modules
 
 Indices and tables
