@@ -90,7 +90,7 @@ class WXUpdater(core.UpdaterCore):
         if update_progress_title:
             self.update_progress_title = update_progress_title
         if update_progress_msg:
-            self.update_progress_msg
+            self.update_progress_msg = update_progress_msg
         if update_almost_complete_title:
             self.update_almost_complete_title = update_almost_complete_title
         if update_almost_complete_msg:
@@ -162,7 +162,6 @@ class WXUpdater(core.UpdaterCore):
         if response == False:
             return None
         base_path = tempfile.mkdtemp()
-        print(base_path)
         download_path = os.path.join(base_path, 'update.zip')
         downloaded = self.download_update(cast(str, version_data[2]), download_path)
         update_path = os.path.join(base_path, 'update')
