@@ -1,5 +1,9 @@
 # updater
 
+[![pipeline status](https://gitlab.mcvsoftware.com/manuelcortez/updater/badges/main/pipeline.svg)](https://gitlab.mcvsoftware.com/manuelcortez/updater/-/commits/main)
+
+[![coverage report](https://gitlab.mcvsoftware.com/manuelcortez/updater/badges/main/coverage.svg)](https://gitlab.mcvsoftware.com/manuelcortez/updater/-/commits/main)
+
 Module to perform automatic software updates.
 
 This module has been started thanks to the code at [app_updater.](https://github.com/accessibleapps/app_updater)
