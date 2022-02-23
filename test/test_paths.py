@@ -45,7 +45,9 @@ def test_app_path():
     old_value = paths.is_mac
     paths.is_mac = True
     sys.frozen = True
-    mac_result = paths.app_path()
-    assert mac_result == os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), "..", "..", "..", ".."))
+    with mock.patch("updater.paths.executable_directory", return_value="/path/to/content/resources"):
+        mac_result = paths.app_path()
+        assert mac_result == os.path.abspath(os.path.join("/path", "to"))
+
     paths.is_mac = old_value
     del sys.frozen
