@@ -1,1 +1,3 @@
 pypubsub
+PySocks
+win_inet_pton
