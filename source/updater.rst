@@ -12,6 +12,14 @@ updater.core module
    :undoc-members:
    :show-inheritance:
 
+updater.paths module
+--------------------
+
+.. automodule:: updater.paths
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 updater.utils module
 --------------------
 
