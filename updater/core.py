@@ -9,7 +9,8 @@ import os
 import platform
 import zipfile
 import logging
-import requests
+import json
+import urllib.request
 from pubsub import pub # type: ignore
 from typing import Optional, Dict, Tuple, Union, Any
 from . import paths
@@ -38,22 +39,16 @@ class UpdaterCore(object):
         self.app_name = app_name
         self.password = password
 
-    def create_session(self) -> None:
-        """ Creates a requests session for calling update server. The session will add an user agent based in parameters passed to :py:class:`updater.core.updaterCore`'s constructor. """
-        user_agent: str = "%s/%s" % (self.app_name, self.current_version)
-        self.session: requests.Session = requests.Session()
-        self.session.headers['User-Agent'] = self.session.headers['User-Agent'] + user_agent
-
     def get_update_information(self) -> Dict[str, Any]:
         """ Calls the provided URL endpoint and returns information about the available update sent by the server. The format should adhere to the json specifications for updates.
 
-        If the server returns a status code different to 200 or the json file is not valid, this will raise either a :external:py:exc:`requests.HTTPError`, :external:py:exc:`requests.RequestException` or a :external:py:exc:`json.JSONDecodeError`.
+        If the server returns a status code different to 200 or the json file is not valid, this will raise either a :py:exc:`urllib.error.HTTPError` or a :external:py:exc:`json.JSONDecodeError`.
 
         :rtype: dict
         """
-        response: requests.Response = self.session.get(self.endpoint)
-        response.raise_for_status()
-        content: Dict[str, Any] = response.json()
+        response = urllib.request.urlopen(self.endpoint)
+        data: str = response.read()
+        content: Dict[str, Any] = json.loads(data)
         return content
 
     def get_version_data(self, content: Dict[str, Any]) -> Tuple[Union[bool, str], Union[bool, str], Union[bool, str]]:
@@ -99,17 +94,11 @@ class UpdaterCore(object):
         :returns: The update file path in the system.
         :rtype: str
         """
-        total_downloaded: int = 0
-        total_size: int = 0
-        with io.open(update_destination, 'w+b') as outfile:
-            download: requests.Response = self.session.get(update_url, stream=True)
-            total_size = int(download.headers.get('content-length', 0))
-            log.debug("Total update size: %d" % total_size)
-            download.raise_for_status()
-            for chunk in download.iter_content(chunk_size):
-                outfile.write(chunk)
-                total_downloaded += len(chunk)
-                pub.sendMessage("updater.update-progress", total_downloaded=total_downloaded, total_size=total_size)
+        def _download_callback(transferred_blocks, block_size, total_size):
+            total_downloaded = transferred_blocks*block_size
+            pub.sendMessage("updater.update-progress", total_downloaded=total_downloaded, total_size=total_size)
+
+        filename, headers = urllib.request.urlretrieve(update_url, update_destination, _download_callback)
         log.debug("Update downloaded")
         return update_destination
 

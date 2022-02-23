@@ -151,7 +151,6 @@ class WXUpdater(core.UpdaterCore):
 
         If there are updates available, displays a dialog to confirm the download of update. If the update downloads successfully, it also extracts and installs it.
         """
-        self.create_session()
         self.initialize()
         update_info = self.get_update_information()
         version_data = self.get_version_data(update_info)

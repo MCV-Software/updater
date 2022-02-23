@@ -100,47 +100,43 @@ def test_on_update_almost_complete():
 @mock.patch("tempfile.mkdtemp", return_value="tmp")
 def test_check_for_updates_update_available(tempfile):
     updater = wxupdater.WXUpdater(endpoint="https://example.com/update.zip", app_name="My awesome application", current_version="0.1")
-    with mock.patch.object(updater, "create_session") as create_session:
-        with mock.patch.object(updater, "initialize") as initialize:
-            with mock.patch.object(updater, "get_update_information") as get_update_information:
-                with mock.patch.object(updater, "get_version_data") as get_version_data:
-                    with mock.patch.object(updater, "on_new_update_available") as on_new_update_available:
-                        with mock.patch.object(updater, "download_update") as download_update:
-                            with mock.patch.object(updater, "extract_update") as extract_update:
-                                with mock.patch.object(updater, "move_bootstrap") as move_bootstrap:
-                                    with mock.patch.object(updater, "on_update_almost_complete") as on_update_almost_complete:
-                                        with mock.patch.object(updater, "execute_bootstrap") as execute_bootstrap:
-                                            updater.check_for_updates()
-                                            execute_bootstrap.assert_called_once()
-                                        on_update_almost_complete.assert_called_once()
-                                    move_bootstrap.assert_called_once()
-                                extract_update.assert_called_once()
-                            download_update.assert_called_once()
-                        on_new_update_available.assert_called_once()
-                    get_version_data.assert_called_once()
-                get_update_information.assert_called_once()
-            initialize.assert_called_once()
-        create_session.assert_called_once()
+    with mock.patch.object(updater, "initialize") as initialize:
+        with mock.patch.object(updater, "get_update_information") as get_update_information:
+            with mock.patch.object(updater, "get_version_data") as get_version_data:
+                with mock.patch.object(updater, "on_new_update_available") as on_new_update_available:
+                    with mock.patch.object(updater, "download_update") as download_update:
+                        with mock.patch.object(updater, "extract_update") as extract_update:
+                            with mock.patch.object(updater, "move_bootstrap") as move_bootstrap:
+                                with mock.patch.object(updater, "on_update_almost_complete") as on_update_almost_complete:
+                                    with mock.patch.object(updater, "execute_bootstrap") as execute_bootstrap:
+                                        updater.check_for_updates()
+                                        execute_bootstrap.assert_called_once()
+                                    on_update_almost_complete.assert_called_once()
+                                move_bootstrap.assert_called_once()
+                            extract_update.assert_called_once()
+                        download_update.assert_called_once()
+                    on_new_update_available.assert_called_once()
+                get_version_data.assert_called_once()
+            get_update_information.assert_called_once()
+        initialize.assert_called_once()
 
 @mock.patch("tempfile.mkdtemp", return_value="tmp")
 def test_check_for_updates_no_update_available(tempfile):
     updater = wxupdater.WXUpdater(endpoint="https://example.com/update.zip", app_name="My awesome application", current_version="0.1")
-    with mock.patch.object(updater, "create_session") as create_session:
-        with mock.patch.object(updater, "initialize") as initialize:
-            with mock.patch.object(updater, "get_update_information") as update_information:
-                with mock.patch.object(updater, "get_version_data", return_value=(False, False, False)) as get_version_data:
-                    result = updater.check_for_updates()
-                    assert result == None
-                    get_version_data.assert_called_once()
+    with mock.patch.object(updater, "initialize") as initialize:
+        with mock.patch.object(updater, "get_update_information") as update_information:
+            with mock.patch.object(updater, "get_version_data", return_value=(False, False, False)) as get_version_data:
+                result = updater.check_for_updates()
+                assert result == None
+                get_version_data.assert_called_once()
 
 @mock.patch("tempfile.mkdtemp", return_value="tmp")
 def test_check_for_updates_user_cancelled_update(tempfile):
     updater = wxupdater.WXUpdater(endpoint="https://example.com/update.zip", app_name="My awesome application", current_version="0.1")
-    with mock.patch.object(updater, "create_session") as create_session:
-        with mock.patch.object(updater, "initialize") as initialize:
-            with mock.patch.object(updater, "get_update_information") as update_information:
-                with mock.patch.object(updater, "get_version_data") as get_version_data:
-                    with mock.patch.object(updater, "on_new_update_available", return_value=False) as on_new_update_available:
-                        result = updater.check_for_updates()
-                        assert result == None
-                        on_new_update_available.assert_called_once()
+    with mock.patch.object(updater, "initialize") as initialize:
+        with mock.patch.object(updater, "get_update_information") as update_information:
+            with mock.patch.object(updater, "get_version_data") as get_version_data:
+                with mock.patch.object(updater, "on_new_update_available", return_value=False) as on_new_update_available:
+                    result = updater.check_for_updates()
+                    assert result == None
+                    on_new_update_available.assert_called_once()

@@ -1,10 +1,9 @@
 import sys
 import os
 import pytest
-import requests_mock
 from unittest import mock
 from json.decoder import JSONDecodeError
-from requests.exceptions import HTTPError
+from urllib.error import HTTPError
 from updater import core
 
 app_name: str = "a simple app"
@@ -17,45 +16,36 @@ win32api = mock.Mock(name="win32api")
 win32api.__name__ = "win32api"
 sys.modules["win32api"] = win32api
 
-def test_requests_session():
-    global app_name, current_version, endpoint
-    updater = core.UpdaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
-    updater.create_session()
-    assert hasattr(updater, "session")
-    assert app_name in updater.session.headers.get("User-Agent")
-    assert current_version in updater.session.headers.get("User-Agent")
-
 def test_get_update_information_valid_json(file_data, json_data):
     global app_name, current_version, endpoint
     updater = core.UpdaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
-    updater.create_session()
-    with requests_mock.Mocker(session=updater.session) as mocked:
-        mocked.get(endpoint, json=json_data)
+    response = mock.Mock()
+    response.getcode.return_value = 200
+    response.read.return_value = file_data
+    with mock.patch("urllib.request.urlopen", return_value=response):
         contents = updater.get_update_information()
         assert contents == json_data
 
 def test_get_update_information_invalid_json(file_data, json_data):
     global app_name, current_version, endpoint
     updater = core.UpdaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
-    updater.create_session()
-    with requests_mock.Mocker(session=updater.session) as mocked:
-        mocked.get(endpoint, text="thisisnotjson")
+    response = mock.Mock()
+    response.getcode.return_value = 200
+    response.read.return_value = "invalid json"
+    with mock.patch("urllib.request.urlopen", return_value=response):
         with pytest.raises(JSONDecodeError):
             contents = updater.get_update_information()
 
 def test_get_update_information_not_found():
     global app_name, current_version, endpoint
     updater = core.UpdaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
-    updater.create_session()
-    with requests_mock.Mocker(session=updater.session) as mocked:
-        mocked.get(endpoint, status_code=404)
+    with mock.patch("urllib.request.urlopen", side_effect=HTTPError(updater.endpoint, 404, "not found", None, None)):
         with pytest.raises(HTTPError):
             contents = updater.get_update_information()
 
 def test_version_data_no_update(json_data):
     global app_name, endpoint
     updater = core.UpdaterCore(endpoint=endpoint, app_name=app_name, current_version=json_data.get("current_version"))
-    updater.create_session()
     results = updater.get_version_data(json_data)
     assert results == (False, False, False)
 
@@ -66,7 +56,6 @@ def test_version_data_no_update(json_data):
 def test_version_data_update_available(json_data, platform, architecture):
     global app_name, current_version, endpoint
     updater = core.UpdaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
-    updater.create_session()
     with mock.patch("platform.system", return_value=platform):
         with mock.patch("platform.architecture", return_value=architecture):
             results = updater.get_version_data(json_data)
@@ -76,25 +65,23 @@ def test_version_data_update_available(json_data, platform, architecture):
 def test_version_data_architecture_not_found(json_data):
     global app_name, current_version, endpoint
     updater = core.UpdaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
-    updater.create_session()
     with mock.patch("platform.system", return_value="nonos"):
         with mock.patch("platform.architecture", return_value=("31bits", "")):
             with pytest.raises(KeyError):
                 results = updater.get_version_data(json_data)
 
+def fake_download_function(url, destination, callback):
+    callback(0, 1024, 2048)
+    return ("file", "headers")
+
 def test_download_update():
     global app_name, current_version, endpoint
     updater = core.UpdaterCore(endpoint=endpoint, app_name=app_name, current_version=current_version)
-    updater.create_session()
-    with mock.patch("pubsub.pub.sendMessage") as sendMessage_mock:
-        with mock.patch("io.open") as open_mock:
-            with requests_mock.Mocker(session=updater.session) as mocker:
-                updatefile = os.path.join(os.path.dirname(__file__), "helloworld_v2_win64.zip")
-                mocker.get("http://downloads.update.org/update.zip", body=open(updatefile, "rb"))
-                result = updater.download_update(update_url="http://downloads.update.org/update.zip", update_destination="update.zip")
-                open_mock.assert_called_once_with("update.zip", "w+b")
-                assert result == "update.zip"
-                assert sendMessage_mock.call_count > 0
+    with mock.patch("pubsub.pub.sendMessage") as pub_sendMessage:
+        with mock.patch("urllib.request.urlretrieve", side_effect=fake_download_function):
+            result = updater.download_update(update_url="http://downloads.update.org/update.zip", update_destination="update.zip")
+            assert result == "update.zip"
+            pub_sendMessage.assert_called_once()
 
 def test_extract_archive():
     # This only tests if archive extraction methods were called successfully and with the right parameters.
