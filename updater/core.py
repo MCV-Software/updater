@@ -11,9 +11,8 @@ import zipfile
 import logging
 import requests
 from pubsub import pub # type: ignore
-from platform_utils import paths # type: ignore
 from typing import Optional, Dict, Tuple, Union, Any
-
+from . import paths
 log = logging.getLogger("updater.core")
 
 class UpdaterCore(object):

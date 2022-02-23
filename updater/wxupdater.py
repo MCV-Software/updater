@@ -38,8 +38,7 @@ import logging
 from typing import Optional, Any, cast
 from pubsub import pub # type: ignore
 from pubsub.core.topicexc import TopicNameError # type: ignore
-from platform_utils import paths # type: ignore
-from . import core, utils
+from . import core, utils, paths
 
 log = logging.getLogger("updater.WXUpdater")
 
@@ -167,7 +166,7 @@ class WXUpdater(core.UpdaterCore):
         update_path = os.path.join(base_path, 'update')
         extraction_path = self.extract_update(downloaded, destination=update_path)
         bootstrap_exe = self.move_bootstrap(extraction_path)
-        source_path = os.path.join(paths.app_path(), "sandbox")
+        source_path = paths.app_path()
         self.on_update_almost_complete()
         self.execute_bootstrap(bootstrap_exe, source_path)
 
