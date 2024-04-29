@@ -91,7 +91,7 @@ def test_extract_archive():
     with mock.patch("zipfile.ZipFile", return_value=zipfile_opened) as zipfile_mock:
         result = updater.extract_update("update.zip", os.path.dirname(__file__))
         assert result == os.path.dirname(__file__)
-        zipfile_mock.called_once_with("update.zip")
+        zipfile_mock.assert_called_once_with("update.zip")
         zipfile_opened.extractall.assert_called_once()
     # Test a password protected update file.
     zipfile_opened_with_password = mock.MagicMock()
@@ -100,8 +100,8 @@ def test_extract_archive():
         updater.password = "MyLongPassword"
         result2 = updater.extract_update("update.zip", os.path.dirname(__file__))
         assert result2 == os.path.dirname(__file__)
-        zipfile_mock.called_once_with("update.zip")
-        zipfile_opened_with_password.setpassword.called_once_with("MyLongPassword")
+        zipfile_mock.assert_called_once_with("update.zip")
+        zipfile_opened_with_password.setpassword.assert_called_once_with("MyLongPassword")
         zipfile_opened_with_password.extractall.assert_called_once()
 
 @pytest.mark.parametrize("system", [("Windows"), ("Darwin"), ("Linux")])
