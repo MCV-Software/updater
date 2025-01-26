@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name="updater",
-version="0.3.0",
+version="0.3.1",
 author="MCVSoftware",
 author_email="support@mcvsoftware.com",
 url="https://github.com/mcvsoftware/updater",

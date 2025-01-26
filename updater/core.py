@@ -38,6 +38,8 @@ class UpdaterCore(object):
         self.current_version = current_version
         self.app_name = app_name
         self.password = password
+        self.update_version = None
+        self.update_description = None
 
     def get_update_information(self) -> Dict[str, Any]:
         """ Calls the provided URL endpoint and returns information about the available update sent by the server. The format should adhere to the json specifications for updates.
@@ -46,8 +48,10 @@ class UpdaterCore(object):
 
         :rtype: dict
         """
-        response = urllib.request.urlopen(self.endpoint)
-        data: str = response.read()
+        headers = {"User-Agent": f"{self.app_name}/{self.current_version}"}
+        req = urllib.request.Request(self.endpoint, headers=headers)
+        with urllib.request.urlopen(req) as response:
+            data: str = response.read()
         content: Dict[str, Any] = json.loads(data)
         return content
 
@@ -97,8 +101,8 @@ class UpdaterCore(object):
         def _download_callback(transferred_blocks, block_size, total_size):
             total_downloaded = transferred_blocks*block_size
             pub.sendMessage("updater.update-progress", total_downloaded=total_downloaded, total_size=total_size)
-
-        filename, headers = urllib.request.urlretrieve(update_url, update_destination, _download_callback)
+        request = urllib.request.Request(update_url, headers={"User-Agent": f"{self.app_name}/{self.current_version}"})
+        filename, headers = urllib.request.urlretrieve(request, update_destination, _download_callback)
         log.debug("Update downloaded")
         return update_destination
 

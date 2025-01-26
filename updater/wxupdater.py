@@ -112,7 +112,7 @@ class WXUpdater(core.UpdaterCore):
         :returns: True if user wants to download the update, False otherwise.
         :rtype: bool
         """
-        dialog = wx.MessageDialog(None, self.new_update_msg, self.new_update_title, style=wx.YES|wx.NO|wx.ICON_WARNING)
+        dialog = wx.MessageDialog(None, self.new_update_msg.format(app_name=self.app_name, update_version=self.update_version, update_description=self.update_description), self.new_update_title.format(app_name=self.app_name), style=wx.YES|wx.NO|wx.ICON_WARNING)
         response = dialog.ShowModal()
         dialog.Destroy()
         if response == wx.ID_YES:
@@ -156,6 +156,8 @@ class WXUpdater(core.UpdaterCore):
         version_data = self.get_version_data(update_info)
         if version_data[0] == False:
             return None
+        self.update_version = version_data[0]
+        self.update_description = version_data[1]
         response = self.on_new_update_available()
         if response == False:
             return None
