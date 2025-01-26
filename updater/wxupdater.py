@@ -131,7 +131,7 @@ class WXUpdater(core.UpdaterCore):
         if total_downloaded == total_size:
             self.progress_dialog.Destroy()
         else:
-            self.progress_dialog.Update((total_downloaded*100)/total_size, self.update_progress_msg.format(total_downloaded=utils.convert_bytes(total_downloaded), total_size=utils.convert_bytes(total_size)))
+            self.progress_dialog.Update(int((total_downloaded*100)/total_size), self.update_progress_msg.format(total_downloaded=utils.convert_bytes(total_downloaded), total_size=utils.convert_bytes(total_size)))
             self.progress_dialog.SetTitle(self.update_progress_msg.format(total_downloaded=utils.convert_bytes(total_downloaded), total_size=utils.convert_bytes(total_size)))
 
     def on_update_almost_complete(self) -> None:

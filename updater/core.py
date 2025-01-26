@@ -98,11 +98,18 @@ class UpdaterCore(object):
         :returns: The update file path in the system.
         :rtype: str
         """
-        def _download_callback(transferred_blocks, block_size, total_size):
-            total_downloaded = transferred_blocks*block_size
-            pub.sendMessage("updater.update-progress", total_downloaded=total_downloaded, total_size=total_size)
         request = urllib.request.Request(update_url, headers={"User-Agent": f"{self.app_name}/{self.current_version}"})
-        filename, headers = urllib.request.urlretrieve(request, update_destination, _download_callback)
+        with urllib.request.urlopen(request) as response:
+            total_size = int(response.headers.get("Content-Length", -1))
+            downloaded_size = 0
+            with open(update_destination, "wb") as out_file:
+                while True:
+                    chunk = response.read(chunk_size)
+                    if not chunk:
+                        break
+                    out_file.write(chunk)
+                    downloaded_size += len(chunk)
+                    pub.sendMessage("updater.update-progress", total_downloaded=downloaded_size, total_size=total_size)
         log.debug("Update downloaded")
         return update_destination
 
